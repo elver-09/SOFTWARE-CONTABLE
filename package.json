@@ -1,0 +1,35 @@
+{
+    "name": "software-contable",
+    "version": "1.0.0",
+    "description": "Software contable profesional standalone",
+    "main": "src/main/main.js",
+    "scripts": {
+        "postinstall": "electron-builder install-app-deps",
+        "start": "electron .",
+        "build:win": "electron-builder --win --x64",
+        "build:mac": "electron-builder --mac"
+    },
+    "author": "Tu Nombre",
+    "license": "ISC",
+    "dependencies": {
+        "better-sqlite3": "^9.4.3",
+        "pdfkit": "^0.18.0"
+    },
+    "devDependencies": {
+        "electron": "^29.1.0",
+        "electron-builder": "^24.13.3"
+    },
+    "build": {
+        "appId": "com.tuempresa.softwarecontable",
+        "productName": "Contabilidad Pro",
+        "directories": {
+            "output": "dist"
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "mac": {
+            "target": "dmg"
+        }
+    }
+}

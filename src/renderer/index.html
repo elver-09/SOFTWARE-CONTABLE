@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Software Contable Pro</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <h2>Contabilidad Pro</h2>
+    <button class="menu-btn active" data-target="view-clientes">Directorio</button>
+    <button class="menu-btn" data-target="view-facturas">Emitir Factura</button>
+  </aside>
+
+  <main class="main-content">
+
+    <section id="view-clientes" class="view-section active">
+      <div class="card">
+        <h2>Nuevo Cliente / Proveedor</h2>
+        <form id="formCliente">
+          <div class="form-grid">
+            <select id="tipo_entidad"><option value="CLIENTE">Cliente</option><option value="PROVEEDOR">Proveedor</option></select>
+            <select id="tipo_documento"><option value="RUC">RUC</option><option value="DNI">DNI</option></select>
+            <input type="text" id="numero_documento" placeholder="Número de Documento" required>
+            <input type="text" id="razon_social" placeholder="Razón Social / Nombre" required>
+            <input type="text" id="direccion" placeholder="Dirección">
+            <button type="submit">Guardar Registro</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Directorio</h2>
+        <table>
+          <thead><tr><th>Tipo</th><th>Doc</th><th>Número</th><th>Razón Social</th></tr></thead>
+          <tbody id="tablaClientes"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="view-facturas" class="view-section">
+      <div class="card">
+        <h2>Nueva Factura / Comprobante</h2>
+        <form id="formFactura">
+          <div class="form-grid">
+            <select id="fac_cliente" required>
+              <option value="">Seleccione un Cliente...</option>
+              </select>
+            <select id="fac_tipo" required>
+              <option value="FACTURA">Factura</option>
+              <option value="BOLETA">Boleta</option>
+            </select>
+            <input type="text" id="fac_serie" placeholder="Serie (Ej: F001)" required>
+            <input type="number" id="fac_correlativo" placeholder="Correlativo (Ej: 1)" required>
+            <input type="date" id="fac_fecha" required>
+            <select id="fac_moneda"><option value="PEN">Soles (PEN)</option><option value="USD">Dólares (USD)</option></select>
+          </div>
+
+          <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+          <h3>Líneas de Detalle</h3>
+          <table id="tablaDetalles">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th width="100">Cant.</th>
+                <th width="150">Precio Unit.</th>
+                <th width="150">Subtotal</th>
+                <th width="50">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="filasDetalle">
+              </tbody>
+          </table>
+          <button type="button" id="btnAgregarFila" style="margin-top: 10px;">+ Agregar Ítem</button>
+
+          <div style="margin-top: 20px; text-align: right; font-size: 18px;">
+            <strong>Total a Pagar: <span id="fac_total_vista">0.00</span></strong>
+          </div>
+
+          <button type="submit" class="btn-success">Guardar Comprobante</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { initRouter } from './js/router.js';
+    import { initClientesModule } from './js/modules/clientes.js';
+    import { initFacturacionModule, refreshClientesSelect } from './js/modules/facturacion.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initRouter();
+      initClientesModule();
+      initFacturacionModule();
+
+      // Escuchar cambios de vista para refrescar selects
+      window.addEventListener('view-changed', (e) => {
+        if (e.detail === 'view-facturas') refreshClientesSelect();
+      });
+    });
+  </script>
+</body>
+</html>
