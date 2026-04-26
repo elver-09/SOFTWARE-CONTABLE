@@ -1,71 +1,91 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const { initDB } = require('./database/db');
+
+// --- 1. IMPORTACIONES DE CONFIGURACIÓN Y BASE DE DATOS ---
+const { getSettings, saveSettings } = require('./config/settings');
+const { conectarEmpresa } = require('./database/db');
+
+// --- 2. IMPORTACIONES DE CONTROLADORES ---
 const clienteController = require('./controllers/clienteController');
 const comprobanteController = require('./controllers/comprobanteController');
 const pdfController = require('./controllers/pdfController');
 
-function createWindow () {
-  // Configuración de la ventana principal
-    const mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 768,
-    minWidth: 800,
-    minHeight: 600,
-    webPreferences: {
-        preload: path.join(__dirname, '../../src/preload.js'),
-      // Por seguridad, Node.js no debe ejecutarse directamente en el frontend
-        nodeIntegration: false, 
-        contextIsolation: true
-    }
+let mainWindow;
+
+function createWindow() {
+    mainWindow = new BrowserWindow({
+        width: 1024,
+        height: 768,
+        minWidth: 800,
+        minHeight: 600,
+        title: "Software Contable Pro",
+        webPreferences: {
+            // El path del preload es relativo a este archivo (src/main/main.js)
+            preload: path.join(__dirname, '../preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true
+        }
     });
 
-  // Cargar el archivo HTML de la interfaz
+    // Cargar la interfaz
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-  // Opcional: Abrir las herramientas de desarrollo (consola) automáticamente
-  // mainWindow.webContents.openDevTools();
+    // Limpiar la referencia cuando se cierra
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 }
 
+// --- 3. REGISTRO DE RUTAS IPC ---
+function registrarRutasIPC() {
+    // GESTIÓN DE EMPRESA (Carpetas)
+    ipcMain.handle('empresa:seleccionar', async () => {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            title: 'Seleccionar o Crear Carpeta de Empresa',
+            properties: ['openDirectory', 'createDirectory']
+        });
+
+        if (result.canceled) return { success: false, canceled: true };
+
+        const folderPath = result.filePaths[0];
+        conectarEmpresa(folderPath);
+
+        const settings = getSettings();
+        settings.lastCompanyPath = folderPath;
+        saveSettings(settings);
+
+        return { success: true, folderPath };
+    });
+
+    ipcMain.handle('empresa:checkLast', () => {
+        const settings = getSettings();
+        if (settings.lastCompanyPath) {
+            conectarEmpresa(settings.lastCompanyPath);
+            return { success: true, folderPath: settings.lastCompanyPath };
+        }
+        return { success: false };
+    });
+
+    // CLIENTES
+    ipcMain.handle('clientes:get', () => clienteController.getClientes());
+    ipcMain.handle('clientes:create', (event, data) => clienteController.createCliente(data));
+
+    // COMPROBANTES Y PDF
+    ipcMain.handle('comprobantes:get', () => comprobanteController.getComprobantes());
+    ipcMain.handle('comprobantes:create', (event, data) => comprobanteController.createComprobante(data));
+    ipcMain.handle('comprobantes:pdf', (event, data) => pdfController.generarYGuardarPDF(data));
+}
+
+// --- 4. CICLO DE VIDA DE LA APLICACIÓN ---
 app.whenReady().then(() => {
-  // 1. Inicializar la base de datos SQLite
-    initDB();
-    // --- RUTAS IPC (Comunicación Frontend -> Backend) ---
-    ipcMain.handle('clientes:get', () => {
-        return clienteController.getClientes();
-    });
-
-    ipcMain.handle('clientes:create', (event, clienteData) => {
-        return clienteController.createCliente(clienteData);
-    });
-
-    ipcMain.handle('comprobantes:get', () => {
-      return comprobanteController.getComprobantes();
-    });
-
-    ipcMain.handle('comprobantes:create', (event, facturaData) => {
-      return comprobanteController.createComprobante(facturaData);
-    });
-
-    ipcMain.handle('comprobantes:pdf', async (event, facturaData) => {
-      return await pdfController.generarYGuardarPDF(facturaData);
-    });
-    // ----------------------------------------------------
-    
-    // 2. Crear la ventana de la aplicación
+    registrarRutasIPC();
     createWindow();
 
-app.on('activate', () => {
-    // En macOS es común volver a crear una ventana al hacer clic en el icono del dock
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
 
-// Cerrar el proceso cuando todas las ventanas estén cerradas (excepto en macOS)
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-    app.quit();
-    }
+    if (process.platform !== 'darwin') app.quit();
 });

@@ -1,16 +1,18 @@
 // src/renderer/js/router.js
-export function initRouter() {
+export function initRouter(onViewChange) {
   document.querySelectorAll('.menu-btn').forEach(button => {
     button.addEventListener('click', () => {
+      // Limpiar clases activas
       document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
       
+      // Activar la vista seleccionada
       button.classList.add('active');
       const targetId = button.getAttribute('data-target');
       document.getElementById(targetId).classList.add('active');
 
-      // Disparamos un evento personalizado por si el módulo necesita recargar datos
-      window.dispatchEvent(new CustomEvent('view-changed', { detail: targetId }));
+      // Avisar si la vista cambió (para refrescar datos si es necesario)
+      if (onViewChange) onViewChange(targetId);
     });
   });
 }

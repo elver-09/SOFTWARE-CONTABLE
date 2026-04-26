@@ -9,12 +9,21 @@
 
   <aside class="sidebar">
     <h2>Contabilidad Pro</h2>
+    
+    <div class="company-info" style="padding: 15px; border-bottom: 1px solid #34495e; margin-bottom: 20px;">
+      <small style="color: #bdc3c7;">Empresa Activa:</small>
+      <div id="ruta_empresa" style="font-size: 14px; font-weight: bold; word-break: break-all; margin: 5px 0;">Ninguna</div>
+      <button id="btnCambiarEmpresa" style="background: #e67e22; color: white; border: none; border-radius: 4px; padding: 8px; font-size: 12px; cursor: pointer; width: 100%;">
+        Cambiar Carpeta
+      </button>
+    </div>
+    
     <button class="menu-btn active" data-target="view-clientes">Directorio</button>
     <button class="menu-btn" data-target="view-facturas">Emitir Factura</button>
   </aside>
 
   <main class="main-content">
-
+    
     <section id="view-clientes" class="view-section active">
       <div class="card">
         <h2>Nuevo Cliente / Proveedor</h2>
@@ -45,7 +54,7 @@
           <div class="form-grid">
             <select id="fac_cliente" required>
               <option value="">Seleccione un Cliente...</option>
-              </select>
+            </select>
             <select id="fac_tipo" required>
               <option value="FACTURA">Factura</option>
               <option value="BOLETA">Boleta</option>
@@ -68,8 +77,7 @@
                 <th width="50">Acción</th>
               </tr>
             </thead>
-            <tbody id="filasDetalle">
-              </tbody>
+            <tbody id="filasDetalle"></tbody>
           </table>
           <button type="button" id="btnAgregarFila" style="margin-top: 10px;">+ Agregar Ítem</button>
 
@@ -84,21 +92,6 @@
 
   </main>
 
-  <script type="module">
-    import { initRouter } from './js/router.js';
-    import { initClientesModule } from './js/modules/clientes.js';
-    import { initFacturacionModule, refreshClientesSelect } from './js/modules/facturacion.js';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      initRouter();
-      initClientesModule();
-      initFacturacionModule();
-
-      // Escuchar cambios de vista para refrescar selects
-      window.addEventListener('view-changed', (e) => {
-        if (e.detail === 'view-facturas') refreshClientesSelect();
-      });
-    });
-  </script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>

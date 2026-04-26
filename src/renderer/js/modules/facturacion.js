@@ -1,64 +1,58 @@
 // src/renderer/js/modules/facturacion.js
-export async function refreshClientesSelect() {
+
+export async function cargarSelectClientes() {
   const clientes = await window.api.getClientes();
   const select = document.getElementById('fac_cliente');
   if (!select) return;
-  select.innerHTML = '<option value="">Seleccione un Cliente...</option>' + 
-    clientes.filter(c => c.tipo_entidad === 'CLIENTE')
-            .map(c => `<option value="${c.id}">${c.numero_documento} - ${c.razon_social}</option>`)
-            .join('');
+  select.innerHTML = '<option value="">Seleccione un Cliente...</option>';
+  clientes.forEach(c => {
+    if(c.tipo_entidad === 'CLIENTE') {
+      select.innerHTML += `<option value="${c.id}">${c.numero_documento} - ${c.razon_social}</option>`;
+    }
+  });
 }
 
 export function initFacturacionModule() {
-  const btnAdd = document.getElementById('btnAgregarFila');
-  const tbody = document.getElementById('filasDetalle');
-  
-  const calcular = () => {
-    let total = 0;
-    tbody.querySelectorAll('tr').forEach(tr => {
-      const c = parseFloat(tr.querySelector('.i-cant').value) || 0;
-      const p = parseFloat(tr.querySelector('.i-precio').value) || 0;
-      const sub = c * p;
-      tr.querySelector('.subtotal-row').innerText = sub.toFixed(2);
-      total += sub;
-    });
-    document.getElementById('fac_total_vista').innerText = total.toFixed(2);
-  };
+  const tbodyDetalles = document.getElementById('filasDetalle');
+  if (!tbodyDetalles) return;
 
-  const addRow = () => {
+  function calcularTotales() {
+    let totalFactura = 0;
+    const filas = tbodyDetalles.querySelectorAll('tr');
+    filas.forEach(fila => {
+      const cant = parseFloat(fila.querySelector('.i-cant').value) || 0;
+      const precio = parseFloat(fila.querySelector('.i-precio').value) || 0;
+      const subtotal = cant * precio;
+      fila.querySelector('.subtotal-row').innerText = subtotal.toFixed(2);
+      totalFactura += subtotal;
+    });
+    document.getElementById('fac_total_vista').innerText = totalFactura.toFixed(2);
+    return totalFactura;
+  }
+
+  function agregarFilaDetalle() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input type="text" class="i-desc" required></td>
-      <td><input type="number" class="i-cant" value="1"></td>
-      <td><input type="number" class="i-precio" value="0.00"></td>
-      <td class="subtotal-row">0.00</td>
-      <td><button type="button" class="btn-danger btn-del">X</button></td>
+      <td><input type="number" step="0.01" class="i-cant" value="1" required></td>
+      <td><input type="number" step="0.01" class="i-precio" value="0.00" required></td>
+      <td class="text-right subtotal-row">0.00</td>
+      <td><button type="button" class="btn-danger btn-eliminar">X</button></td>
     `;
-    tr.querySelectorAll('input').forEach(i => i.addEventListener('input', calcular));
-    tr.querySelector('.btn-del').addEventListener('click', () => { tr.remove(); calcular(); });
-    tbody.appendChild(tr);
-  };
-
-  btnAdd?.addEventListener('click', addRow);
-  
-  document.getElementById('formFactura')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // 1. Recopilar datos y calcular total
-    let totalImporte = 0;
-    const detalles = [];
-    tbody.querySelectorAll('tr').forEach(tr => {
-      const cantidad = parseFloat(tr.querySelector('.i-cant').value) || 0;
-      const precio_unitario = parseFloat(tr.querySelector('.i-precio').value) || 0;
-      const subtotal = cantidad * precio_unitario;
-      
-      detalles.push({
-        descripcion: tr.querySelector('.i-desc').value,
-        cantidad, precio_unitario, subtotal
-      });
-      totalImporte += subtotal;
+    tr.querySelector('.i-cant').addEventListener('input', calcularTotales);
+    tr.querySelector('.i-precio').addEventListener('input', calcularTotales);
+    tr.querySelector('.btn-eliminar').addEventListener('click', () => {
+      tr.remove();
+      calcularTotales();
     });
+    tbodyDetalles.appendChild(tr);
+  }
 
+  document.getElementById('btnAgregarFila').addEventListener('click', agregarFilaDetalle);
+
+  document.getElementById('formFactura').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const totalImporte = calcularTotales();
     if (totalImporte <= 0) return alert('La factura debe tener un total mayor a 0');
 
     const cabecera = {
@@ -72,32 +66,38 @@ export function initFacturacionModule() {
       total_importe: totalImporte
     };
 
-    // 2. Guardar en Base de Datos (SQLite)
+    const detalles = [];
+    tbodyDetalles.querySelectorAll('tr').forEach(fila => {
+      detalles.push({
+        descripcion: fila.querySelector('.i-desc').value,
+        cantidad: parseFloat(fila.querySelector('.i-cant').value),
+        precio_unitario: parseFloat(fila.querySelector('.i-precio').value),
+        subtotal: parseFloat(fila.querySelector('.subtotal-row').innerText)
+      });
+    });
+
     const response = await window.api.createComprobante({ cabecera, detalles });
     
     if (response.success) {
-      // 3. ¡NUEVO! Preguntar si quiere el PDF
-      const confirmarImpresion = confirm('Comprobante registrado en la base de datos con éxito.\n\n¿Desea exportar el documento en PDF ahora?');
-      
+      const confirmarImpresion = confirm('Comprobante registrado con éxito.\n\n¿Desea exportar el PDF ahora?');
       if (confirmarImpresion) {
-        // Llamar a la función que abre el cuadro de diálogo nativo
         const pdfRes = await window.api.exportarPDF({ cabecera, detalles });
-        if (pdfRes.success) {
+        if (pdfRes && pdfRes.success) {
           alert(`PDF guardado exitosamente en:\n${pdfRes.filePath}`);
-        } else if (!pdfRes.canceled) {
+        } else if (pdfRes && !pdfRes.canceled) {
           alert('Error al generar el PDF.');
         }
       }
-
-      // 4. Limpiar el formulario para la siguiente factura
       document.getElementById('formFactura').reset();
-      tbody.innerHTML = ''; 
-      document.getElementById('btnAgregarFila').click(); // Re-agrega fila vacía
-      document.getElementById('fac_total_vista').innerText = '0.00';
+      tbodyDetalles.innerHTML = '';
+      agregarFilaDetalle();
+      calcularTotales();
     } else {
-      alert('Error al guardar en BD: ' + response.error);
+      alert('Error: ' + response.error);
     }
   });
 
-  addRow(); // Fila inicial
+  // Inicialización de vista
+  agregarFilaDetalle();
+  document.getElementById('fac_fecha').valueAsDate = new Date();
 }

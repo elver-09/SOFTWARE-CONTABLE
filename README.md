@@ -1,52 +1,90 @@
 # Software Contable
 
-Este proyecto es una aplicación de software contable que permite gestionar clientes, comprobantes y generar documentos PDF. La aplicación está estructurada en un modelo MVC (Modelo-Vista-Controlador) y utiliza Node.js como backend.
+Aplicación de escritorio contable construida con Electron, Node.js y SQLite.
 
-## Estructura del Proyecto
+## Qué hace este proyecto
 
-- **src/**: Contiene el código fuente de la aplicación.
-  - **preload.js**: Script de precarga para la aplicación.
-  - **main/**: Contiene la lógica principal de la aplicación.
-    - **main.js**: Archivo principal que inicia la aplicación.
-    - **config/**: Configuraciones de la aplicación.
-    - **controllers/**: Controladores que manejan la lógica de negocio.
-      - **clienteController.js**: Controlador para la gestión de clientes.
-      - **comprobanteController.js**: Controlador para la gestión de comprobantes.
-      - **pdfController.js**: Controlador para la generación de PDFs.
-    - **database/**: Conexiones y configuraciones de la base de datos.
-      - **db.js**: Archivo de configuración de la base de datos.
-    - **models/**: Modelos de datos utilizados en la aplicación.
-- **renderer/**: Contiene los archivos de la interfaz de usuario.
-  - **index.html**: Página principal de la aplicación.
-  - **css/**: Archivos de estilo.
-    - **styles.css**: Estilos globales de la aplicación.
-  - **js/**: Archivos JavaScript para la interfaz de usuario.
-    - **app.js**: Archivo principal de JavaScript para la interfaz.
-    - **router.js**: Manejo de rutas en la aplicación.
-    - **modules/**: Módulos específicos de la aplicación.
-      - **clientes.js**: Módulo para la gestión de clientes.
-      - **facturacion.js**: Módulo para la gestión de facturación.
+- Gestiona clientes y proveedores.
+- Administra comprobantes electrónicos (facturas, boletas, recibos).
+- Genera y guarda comprobantes en formato PDF usando `pdfkit`.
+- Conecta cada empresa a una base de datos SQLite local dentro de la carpeta seleccionada.
+- Guarda la última carpeta de empresa utilizada en la configuración del usuario.
+
+## Características principales
+
+- Interfaz de escritorio basada en Electron.
+- Conexión a una base de datos SQLite local con `better-sqlite3`.
+- Persistencia de datos en `data_contable.db` dentro de la carpeta de empresa.
+- Soporte para crear clientes, comprobantes y detallar ítems.
+- Exportación de comprobantes a PDF mediante un diálogo nativo de "Guardar como".
+
+## Estructura del proyecto
+
+- **src/**: Código fuente principal.
+  - **preload.js**: Script de precarga para la ventana de Electron.
+  - **main/**: Lógica principal de la aplicación.
+    - **main.js**: Inicializa la ventana de Electron y registra los handlers IPC.
+    - **config/**
+      - **settings.js**: Lectura/escritura de configuración del usuario.
+    - **controllers/**
+      - **clienteController.js**: Gestión de clientes y proveedores.
+      - **comprobanteController.js**: Gestión de comprobantes y detalles.
+      - **pdfController.js**: Generación y guardado de PDF.
+    - **database/**
+      - **db.js**: Conexión y creación de tablas SQLite.
+- **renderer/**: Interfaz de usuario.
+  - **index.html**: HTML principal.
+  - **css/**: Estilos de la aplicación.
+    - **styles.css**
+  - **js/**: Lógica de la interfaz.
+    - **app.js**
+    - **router.js**
+    - **modules/**
+      - **clientes.js**
+      - **facturacion.js**
+
+## Dependencias
+
+- `electron`: Plataforma de escritorio.
+- `electron-builder`: Construcción de instaladores.
+- `better-sqlite3`: Base de datos SQLite.
+- `pdfkit`: Generador de PDFs.
 
 ## Instalación
-
-Para instalar las dependencias del proyecto, ejecuta:
 
 ```bash
 npm install
 ```
 
+> Después de la instalación, `electron-builder` también instala las dependencias nativas necesarias para Electron.
+
 ## Uso
 
-Inicia la aplicación con el siguiente comando:
+Inicia la aplicación en modo desarrollo:
 
 ```bash
 npm start
 ```
 
-## Contribuciones
+## Construcción de paquetes
 
-Las contribuciones son bienvenidas. Si deseas contribuir, por favor abre un issue o un pull request.
+- Windows x64:
+
+```bash
+npm run build:win
+```
+
+- macOS:
+
+```bash
+npm run build:mac
+```
+
+## Notas importantes
+
+- Antes de crear comprobantes, selecciona una carpeta de empresa para que se genere el archivo `data_contable.db`.
+- La aplicación recuerda la última carpeta de empresa usada mediante `app_settings.json`.
 
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT.
+Este proyecto utiliza la licencia `ISC`.

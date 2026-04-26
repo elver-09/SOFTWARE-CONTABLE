@@ -1,10 +1,11 @@
-const { db } = require('../database/db');
+const { getDB } = require('../database/db'); // Cambiamos a getDB
 
 // Obtener todos los clientes
 function getClientes() {
   try {
+    const db = getDB(); // Obtenemos la conexión activa en ese momento
     const stmt = db.prepare('SELECT * FROM clientes_proveedores ORDER BY id DESC');
-    return stmt.all(); // .all() devuelve un array con todos los registros
+    return stmt.all();
   } catch (error) {
     console.error("Error al obtener clientes:", error);
     return [];
@@ -14,6 +15,7 @@ function getClientes() {
 // Crear un nuevo cliente
 function createCliente(cliente) {
   try {
+    const db = getDB(); // Obtenemos la conexión activa en ese momento
     const stmt = db.prepare(`
       INSERT INTO clientes_proveedores 
       (tipo_entidad, tipo_documento, numero_documento, razon_social, direccion) 

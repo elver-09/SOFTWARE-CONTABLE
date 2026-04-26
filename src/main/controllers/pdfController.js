@@ -1,14 +1,24 @@
 // src/main/controllers/pdfController.js
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const path = require('path');
 const { dialog } = require('electron');
+const { getSettings } = require('../config/settings'); // Importamos la configuración para saber la ruta activa
 
 async function generarYGuardarPDF(facturaData) {
+  // Obtenemos la ruta de la empresa actual
+  const settings = getSettings();
+  const carpetaEmpresa = settings.lastCompanyPath || ''; 
+
+  // Construimos el nombre del archivo y lo unimos a la carpeta de la empresa
+  const nombreSugerido = `Comprobante_${facturaData.cabecera.serie}-${facturaData.cabecera.correlativo}.pdf`;
+  const rutaSugerida = path.join(carpetaEmpresa, nombreSugerido);
+
   // 1. Abrir la ventana nativa "Guardar como..."
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: 'Guardar Comprobante PDF',
-    // Nombre por defecto sugerido
-    defaultPath: `Comprobante_${facturaData.cabecera.serie}-${facturaData.cabecera.correlativo}.pdf`,
+    // Ahora sugerirá guardar directamente dentro de la carpeta de la empresa seleccionada
+    defaultPath: rutaSugerida,
     filters: [
       { name: 'Documentos PDF', extensions: ['pdf'] }
     ]
@@ -50,7 +60,7 @@ async function generarYGuardarPDF(facturaData) {
       facturaData.detalles.forEach(item => {
         // Formato: Cantidad | Descripción | Precio Unitario | Subtotal
         const linea = `${item.cantidad} x  ${item.descripcion}`;
-        const montos = `P.U: ${item.precio_unitario}  |  Subtotal: ${item.subtotal}`;
+        const montos = `P.U: ${item.precio_unitario.toFixed(2)}  |  Subtotal: ${item.subtotal.toFixed(2)}`;
         doc.text(linea);
         doc.text(montos, { align: 'right' });
         doc.moveDown(0.5);
@@ -62,7 +72,7 @@ async function generarYGuardarPDF(facturaData) {
 
       // Total
       doc.fontSize(16).text(
-        `TOTAL A PAGAR: ${facturaData.cabecera.moneda} ${facturaData.cabecera.total_importe}`, 
+        `TOTAL A PAGAR: ${facturaData.cabecera.moneda} ${facturaData.cabecera.total_importe.toFixed(2)}`, 
         { align: 'right' }
       );
 
