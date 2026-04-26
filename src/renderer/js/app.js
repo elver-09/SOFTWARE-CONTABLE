@@ -2,6 +2,8 @@
 
 import { initRouter } from './router.js';
 
+let empresaConfigInitialized = false;
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Función para mostrar solo el nombre final de la carpeta (ej: Gloria_SAC)
   const obtenerNombreCarpeta = (rutaCompleta) => {
@@ -17,8 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
     alert("Por favor, seleccione o cree una carpeta para empezar a trabajar.");
-    // Forzar ir a la vista de empresa
-    document.querySelector('[data-target="view-empresa-gestion"]').click();
   }
 
   // 2. Inicializar el menú lateral y decirle qué hacer al cambiar de vista
@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           initEmpresaConfig();
       }
   });
+
+  // Cargar la vista de empresa desde el inicio, sin requerir clic adicional
+  renderListaEmpresas();
+  initEmpresaConfig();
 });
 
 async function renderListaEmpresas() {
@@ -64,6 +68,10 @@ function initEmpresaConfig() {
   // Cargar datos actuales (solo lectura)
   loadEmpresaInfo();
 
+  // Evitar registrar listeners múltiples veces
+  if (empresaConfigInitialized) return;
+  empresaConfigInitialized = true;
+
   // Evento para nueva empresa
   document.getElementById('btnNuevaEmpresa').addEventListener('click', async () => {
     const result = await window.api.seleccionarEmpresa();
@@ -71,7 +79,8 @@ function initEmpresaConfig() {
       // Actualizar título del sidebar
       const nombreCarpeta = result.folderPath.split(/[/\\]/).pop();
       document.getElementById('sidebar-title').textContent = nombreCarpeta;
-      window.location.reload();
+      renderListaEmpresas();
+      loadEmpresaInfo();
     }
   });
 
@@ -131,21 +140,32 @@ function initEmpresaConfig() {
 }
 
 async function loadEmpresaInfo() {
-  const info = await window.api.getEmpresaInfo();
-  document.getElementById('emp_nombre').value = info.nombre_comercial || '';
-  document.getElementById('emp_ruc').value = info.ruc || '';
-  document.getElementById('emp_direccion').value = info.direccion_fiscal || '';
-  document.getElementById('emp_telefono').value = info.telefono || '';
-  document.getElementById('emp_correo').value = info.correo || '';
-  document.getElementById('emp_periodo').value = info.periodo_contable || '2024';
-  
-  // Mostrar logo en sidebar
-  const logoImg = document.getElementById('sidebar-logo');
-  if (info.logo) {
-    logoImg.src = info.logo;
-    logoImg.style.display = 'block';
-  } else {
-    logoImg.style.display = 'none';
+  try {
+    const info = await window.api.getEmpresaInfo();
+    document.getElementById('emp_nombre').value = info.nombre_comercial || '';
+    document.getElementById('emp_ruc').value = info.ruc || '';
+    document.getElementById('emp_direccion').value = info.direccion_fiscal || '';
+    document.getElementById('emp_telefono').value = info.telefono || '';
+    document.getElementById('emp_correo').value = info.correo || '';
+    document.getElementById('emp_periodo').value = info.periodo_contable || '2024';
+    
+    // Mostrar logo en sidebar
+    const logoImg = document.getElementById('sidebar-logo');
+    if (info.logo) {
+      logoImg.src = info.logo;
+      logoImg.style.display = 'block';
+    } else {
+      logoImg.style.display = 'none';
+    }
+  } catch (error) {
+    // No hay empresa activa todavía o no hay base de datos cargada.
+    document.getElementById('emp_nombre').value = '';
+    document.getElementById('emp_ruc').value = '';
+    document.getElementById('emp_direccion').value = '';
+    document.getElementById('emp_telefono').value = '';
+    document.getElementById('emp_correo').value = '';
+    document.getElementById('emp_periodo').value = '2024';
+    document.getElementById('sidebar-logo').style.display = 'none';
   }
 }
 
