@@ -1,16 +1,11 @@
 // src/renderer/js/app.js
 
 import { initRouter } from './router.js';
-import { initClientesModule, loadClientes } from './modules/clientes.js';
-import { initFacturacionModule, cargarSelectClientes } from './modules/facturacion.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const rutaUI = document.getElementById('ruta_empresa');
-  const btnCambiar = document.getElementById('btnCambiarEmpresa');
-
   // Función para mostrar solo el nombre final de la carpeta (ej: Gloria_SAC)
   const obtenerNombreCarpeta = (rutaCompleta) => {
-    if (!rutaCompleta) return "Ninguna";
+    if (!rutaCompleta) return "Contabilidad Pro";
     return rutaCompleta.split(/[/\\]/).pop();
   };
 
@@ -18,32 +13,186 @@ document.addEventListener('DOMContentLoaded', async () => {
   const lastCompany = await window.api.checkLastEmpresa();
   
   if (lastCompany.success) {
-    rutaUI.innerText = obtenerNombreCarpeta(lastCompany.folderPath);
-    rutaUI.title = lastCompany.folderPath; // Tooltip con la ruta completa
-    
-    // Inicializar módulos porque ya hay Base de Datos
-    initClientesModule();
-    loadClientes(); 
-    initFacturacionModule();
+    document.getElementById('sidebar-title').textContent = obtenerNombreCarpeta(lastCompany.folderPath);
   } else {
-    rutaUI.innerText = "Ninguna";
+    document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
     alert("Por favor, seleccione o cree una carpeta para empezar a trabajar.");
-    btnCambiar.click(); 
+    // Forzar ir a la vista de empresa
+    document.querySelector('[data-target="view-empresa-gestion"]').click();
   }
 
-  // 2. Evento del botón cambiar carpeta
-  btnCambiar.addEventListener('click', async () => {
+  // 2. Inicializar el menú lateral y decirle qué hacer al cambiar de vista
+  initRouter((targetId) => {
+      if (targetId === 'view-empresa-gestion') {
+          renderListaEmpresas();
+          initEmpresaConfig();
+      }
+  });
+});
+
+async function renderListaEmpresas() {
+  const empresas = await window.api.getEmpresasLista() || [];
+  const lista = document.getElementById('lista-empresas-items');
+  lista.innerHTML = '';
+  
+  empresas.forEach(ruta => {
+    const div = document.createElement('div');
+    div.className = 'empresa-item';
+    div.innerHTML = `
+      <span>${ruta.split(/[/\\]/).pop()}</span>
+      <button class="btn-edit" data-ruta="${ruta}" style="background: none; border: none; font-size: 16px; cursor: pointer;">✏️</button>
+    `;
+    div.title = ruta;
+    div.addEventListener('dblclick', () => {
+      window.api.conectarRutaDirecta(ruta);
+      window.location.reload();
+    });
+    lista.appendChild(div);
+  });
+
+  // Agregar eventos a los botones de editar
+  document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const ruta = btn.getAttribute('data-ruta');
+      abrirModalEditar(ruta);
+    });
+  });
+}
+
+function initEmpresaConfig() {
+  // Cargar datos actuales (solo lectura)
+  loadEmpresaInfo();
+
+  // Evento para nueva empresa
+  document.getElementById('btnNuevaEmpresa').addEventListener('click', async () => {
     const result = await window.api.seleccionarEmpresa();
     if (result.success) {
-      rutaUI.innerText = obtenerNombreCarpeta(result.folderPath);
-      window.location.reload(); // Recargar para limpiar la memoria
+      // Actualizar título del sidebar
+      const nombreCarpeta = result.folderPath.split(/[/\\]/).pop();
+      document.getElementById('sidebar-title').textContent = nombreCarpeta;
+      window.location.reload();
     }
   });
 
-  // 3. Inicializar el menú lateral y decirle qué hacer al cambiar de vista
-  initRouter((targetId) => {
-    if (targetId === 'view-facturas') {
-      cargarSelectClientes(); // Refrescar clientes al entrar a facturar
+  // Eventos del modal
+  document.getElementById('formEditarEmpresa').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById('edit_emp_nombre').value;
+    const ruc = document.getElementById('edit_emp_ruc').value;
+    const direccion = document.getElementById('edit_emp_direccion').value;
+    const telefono = document.getElementById('edit_emp_telefono').value;
+    const correo = document.getElementById('edit_emp_correo').value;
+    const periodo = document.getElementById('edit_emp_periodo').value;
+    
+    // Obtener logo
+    let logo = null;
+    const fileInput = document.getElementById('edit_emp_logo');
+    if (fileInput.files[0]) {
+      logo = document.getElementById('preview-logo').src;
+    } else {
+      // Mantener logo actual si no se cambió
+      const info = await window.api.getEmpresaInfo();
+      logo = info.logo;
+    }
+    
+    const result = await window.api.updateEmpresaInfo({
+      nombre: nombre,
+      ruc: ruc,
+      direccion: direccion,
+      telefono: telefono,
+      correo: correo,
+      periodo: periodo,
+      logo: logo
+    });
+    if (result.success) {
+      alert('Empresa editada correctamente');
+      cerrarModal();
+      // Recargar datos en la sección de solo lectura
+      loadEmpresaInfo();
+    } else {
+      alert('Error: ' + result.error);
     }
   });
-});
+
+  // Evento para preview del logo
+  document.getElementById('edit_emp_logo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('preview-logo').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('btnCerrarModal').addEventListener('click', cerrarModal);
+}
+
+async function loadEmpresaInfo() {
+  const info = await window.api.getEmpresaInfo();
+  document.getElementById('emp_nombre').value = info.nombre_comercial || '';
+  document.getElementById('emp_ruc').value = info.ruc || '';
+  document.getElementById('emp_direccion').value = info.direccion_fiscal || '';
+  document.getElementById('emp_telefono').value = info.telefono || '';
+  document.getElementById('emp_correo').value = info.correo || '';
+  document.getElementById('emp_periodo').value = info.periodo_contable || '2024';
+  
+  // Mostrar logo en sidebar
+  const logoImg = document.getElementById('sidebar-logo');
+  if (info.logo) {
+    logoImg.src = info.logo;
+    logoImg.style.display = 'block';
+  } else {
+    logoImg.style.display = 'none';
+  }
+}
+
+function abrirModalEditar(ruta) {
+  // Primero conectar a esa empresa para cargar su info
+  window.api.conectarRutaDirecta(ruta);
+  // Luego cargar info
+  setTimeout(async () => {
+    const info = await window.api.getEmpresaInfo();
+    const nombreCarpeta = ruta.split(/[/\\]/).pop();
+    
+    // Pre-llenar con nombre de carpeta si no hay nombre comercial
+    document.getElementById('edit_emp_nombre').value = info.nombre_comercial || nombreCarpeta;
+    document.getElementById('edit_emp_ruc').value = info.ruc || '';
+    document.getElementById('edit_emp_direccion').value = info.direccion_fiscal || '';
+    document.getElementById('edit_emp_telefono').value = info.telefono || '';
+    document.getElementById('edit_emp_correo').value = info.correo || '';
+    document.getElementById('edit_emp_periodo').value = info.periodo_contable || '2024';
+    
+    // Mostrar logo actual
+    const previewImg = document.getElementById('preview-logo');
+    if (info.logo) {
+      previewImg.src = info.logo;
+      previewImg.style.display = 'block';
+    } else {
+      previewImg.style.display = 'none';
+    }
+    
+    document.getElementById('modalEditarEmpresa').style.display = 'flex';
+    
+    // Evento para preview de nuevo logo
+    document.getElementById('edit_emp_logo').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          previewImg.src = event.target.result;
+          previewImg.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }, 100); // Pequeño delay para asegurar conexión
+}
+
+function cerrarModal() {
+  document.getElementById('modalEditarEmpresa').style.display = 'none';
+  // Reconectar a la empresa original si es necesario
+  // Pero por ahora, dejar como está
+}

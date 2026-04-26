@@ -1,22 +1,22 @@
 # Software Contable
 
-Aplicación de escritorio contable construida con Electron, Node.js y SQLite.
+Aplicación de escritorio para gestión de empresas contables construida con Electron, Node.js y SQLite.
 
 ## Qué hace este proyecto
 
-- Gestiona clientes y proveedores.
-- Administra comprobantes electrónicos (facturas, boletas, recibos).
-- Genera y guarda comprobantes en formato PDF usando `pdfkit`.
+- Gestiona múltiples empresas de forma independiente, cada una con su propia base de datos SQLite.
+- Configura información básica de cada empresa (nombre comercial, RUC, dirección, teléfono, correo, período contable).
+- Permite subir y gestionar logos de empresa.
 - Conecta cada empresa a una base de datos SQLite local dentro de la carpeta seleccionada.
 - Guarda la última carpeta de empresa utilizada en la configuración del usuario.
 
 ## Características principales
 
 - Interfaz de escritorio basada en Electron.
-- Conexión a una base de datos SQLite local con `better-sqlite3`.
-- Persistencia de datos en `data_contable.db` dentro de la carpeta de empresa.
-- Soporte para crear clientes, comprobantes y detallar ítems.
-- Exportación de comprobantes a PDF mediante un diálogo nativo de "Guardar como".
+- Conexión a bases de datos SQLite locales con `better-sqlite3`.
+- Persistencia de datos en archivos `*_contable.db` dentro de la carpeta de empresa.
+- Gestión completa de información de empresa con logo personalizado.
+- Interfaz intuitiva para crear y gestionar empresas.
 
 ## Estructura del proyecto
 
@@ -27,9 +27,7 @@ Aplicación de escritorio contable construida con Electron, Node.js y SQLite.
     - **config/**
       - **settings.js**: Lectura/escritura de configuración del usuario.
     - **controllers/**
-      - **clienteController.js**: Gestión de clientes y proveedores.
-      - **comprobanteController.js**: Gestión de comprobantes y detalles.
-      - **pdfController.js**: Generación y guardado de PDF.
+      - **empresaController.js**: Gestión de configuración de empresa.
     - **database/**
       - **db.js**: Conexión y creación de tablas SQLite.
 - **renderer/**: Interfaz de usuario.
@@ -40,15 +38,13 @@ Aplicación de escritorio contable construida con Electron, Node.js y SQLite.
     - **app.js**
     - **router.js**
     - **modules/**
-      - **clientes.js**
-      - **facturacion.js**
+      - **empresas.js**
 
 ## Dependencias
 
 - `electron`: Plataforma de escritorio.
 - `electron-builder`: Construcción de instaladores.
 - `better-sqlite3`: Base de datos SQLite.
-- `pdfkit`: Generador de PDFs.
 
 ## Instalación
 
@@ -82,8 +78,9 @@ npm run build:mac
 
 ## Notas importantes
 
-- Antes de crear comprobantes, selecciona una carpeta de empresa para que se genere el archivo `data_contable.db`.
+- Antes de configurar una empresa, selecciona una carpeta para que se genere el archivo de base de datos.
 - La aplicación recuerda la última carpeta de empresa usada mediante `app_settings.json`.
+- Cada empresa tiene su propia base de datos SQLite independiente.
 
 ## Licencia
 

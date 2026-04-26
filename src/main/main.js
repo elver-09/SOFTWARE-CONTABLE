@@ -1,3 +1,4 @@
+// src/main/main.js
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
@@ -6,9 +7,7 @@ const { getSettings, saveSettings } = require('./config/settings');
 const { conectarEmpresa } = require('./database/db');
 
 // --- 2. IMPORTACIONES DE CONTROLADORES ---
-const clienteController = require('./controllers/clienteController');
-const comprobanteController = require('./controllers/comprobanteController');
-const pdfController = require('./controllers/pdfController');
+const empresaController = require('./controllers/empresaController');
 
 let mainWindow;
 
@@ -20,41 +19,55 @@ function createWindow() {
         minHeight: 600,
         title: "Software Contable Pro",
         webPreferences: {
-            // El path del preload es relativo a este archivo (src/main/main.js)
             preload: path.join(__dirname, '../preload.js'),
             nodeIntegration: false,
             contextIsolation: true
         }
     });
 
-    // Cargar la interfaz
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-    // Limpiar la referencia cuando se cierra
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
 }
 
-// --- 3. REGISTRO DE RUTAS IPC ---
+// --- 3. REGISTRO DE RUTAS IPC (SOLO UNA VEZ POR CANAL) ---
 function registrarRutasIPC() {
-    // GESTIÓN DE EMPRESA (Carpetas)
+    
+    // GESTIÓN GLOBAL DE EMPRESAS (Rutas y Carpetas)
+    ipcMain.handle('empresa:get-list', () => {
+        return getSettings().companies; 
+    });
+
     ipcMain.handle('empresa:seleccionar', async () => {
         const result = await dialog.showOpenDialog(mainWindow, {
             title: 'Seleccionar o Crear Carpeta de Empresa',
             properties: ['openDirectory', 'createDirectory']
         });
 
-        if (result.canceled) return { success: false, canceled: true };
+        if (result.canceled) return { success: false };
 
         const folderPath = result.filePaths[0];
-        conectarEmpresa(folderPath);
-
         const settings = getSettings();
+        
+        if (!settings.companies.includes(folderPath)) {
+            settings.companies.push(folderPath);
+        }
+        
         settings.lastCompanyPath = folderPath;
         saveSettings(settings);
+        conectarEmpresa(folderPath);
 
         return { success: true, folderPath };
+    });
+
+    ipcMain.handle('empresa:conectar-directa', (event, ruta) => {
+        const settings = getSettings();
+        settings.lastCompanyPath = ruta;
+        saveSettings(settings);
+        conectarEmpresa(ruta);
+        return { success: true };
     });
 
     ipcMain.handle('empresa:checkLast', () => {
@@ -66,17 +79,12 @@ function registrarRutasIPC() {
         return { success: false };
     });
 
-    // CLIENTES
-    ipcMain.handle('clientes:get', () => clienteController.getClientes());
-    ipcMain.handle('clientes:create', (event, data) => clienteController.createCliente(data));
-
-    // COMPROBANTES Y PDF
-    ipcMain.handle('comprobantes:get', () => comprobanteController.getComprobantes());
-    ipcMain.handle('comprobantes:create', (event, data) => comprobanteController.createComprobante(data));
-    ipcMain.handle('comprobantes:pdf', (event, data) => pdfController.generarYGuardarPDF(data));
+    // DATOS DEL PERFIL DE EMPRESA (Configuración Interna)
+    ipcMain.handle('empresa:get-info', () => empresaController.getInfoEmpresa());
+    ipcMain.handle('empresa:update-info', (event, data) => empresaController.updateInfoEmpresa(data));
 }
 
-// --- 4. CICLO DE VIDA DE LA APLICACIÓN ---
+// --- 4. CICLO DE VIDA ---
 app.whenReady().then(() => {
     registrarRutasIPC();
     createWindow();

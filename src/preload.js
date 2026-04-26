@@ -1,16 +1,14 @@
+// src/preload.js
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
-    // --- 1. GESTIÓN DE EMPRESAS ---
+    // --- GESTIÓN GLOBAL DE EMPRESAS (Rutas) ---
     seleccionarEmpresa: () => ipcRenderer.invoke('empresa:seleccionar'),
     checkLastEmpresa: () => ipcRenderer.invoke('empresa:checkLast'),
+    getEmpresasLista: () => ipcRenderer.invoke('empresa:get-list'),
+    conectarRutaDirecta: (ruta) => ipcRenderer.invoke('empresa:conectar-directa', ruta),
 
-    // --- 2. MÓDULO DE CLIENTES ---
-    getClientes: () => ipcRenderer.invoke('clientes:get'),
-    createCliente: (data) => ipcRenderer.invoke('clientes:create', data),
-
-    // --- 3. MÓDULO DE FACTURACIÓN Y PDF ---
-    getComprobantes: () => ipcRenderer.invoke('comprobantes:get'),
-    createComprobante: (data) => ipcRenderer.invoke('comprobantes:create', data),
-    exportarPDF: (data) => ipcRenderer.invoke('comprobantes:pdf', data)
+    // --- DATOS INTERNOS DE LA EMPRESA ACTIVA ---
+    getEmpresaInfo: () => ipcRenderer.invoke('empresa:get-info'),
+    updateEmpresaInfo: (data) => ipcRenderer.invoke('empresa:update-info', data)
 });

@@ -16,7 +16,7 @@ body {
   display: flex;
   flex-direction: column;
 }
-.sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 20px;}
+.sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 20px; word-wrap: break-word; white-space: normal; line-height: 1.2; }
 .menu-btn {
   background: transparent;
   color: #ecf0f1;
@@ -47,6 +47,7 @@ body {
 .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
 input, select { padding: 8px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+input[readonly] { background-color: #f9f9f9; color: #666; cursor: not-allowed; }
 button { background: #0d6efd; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
 button:hover { background: #0b5ed7; }
 .btn-danger { background: #dc3545; } .btn-danger:hover { background: #bb2d3b; }
@@ -57,3 +58,108 @@ table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f8f9fa; }
 .text-right { text-align: right; }
+
+.empresa-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    transition: all 0.2s;
+    background: #f9f9f9;
+    user-select: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.empresa-item:hover {
+    background: #f0f0f0;
+    border-color: #3498db;
+}
+.empresa-icon { font-size: 24px; }
+.empresa-details strong { display: block; color: #2c3e50; }
+.empresa-details small { color: #7f8c8d; font-size: 11px; }
+
+/* Modal */
+#modalEditarEmpresa {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+#modalEditarEmpresa > div {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 600px;
+  max-width: 90%;
+}
+#modalEditarEmpresa form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#modalEditarEmpresa .form-grid {
+  margin-bottom: 20px;
+}
+#modalEditarEmpresa button {
+  background: #2c3e50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  width: auto;
+  margin: 0 5px;
+}
+#modalEditarEmpresa button:first-of-type {
+  background: #27ae60;
+}
+#modalEditarEmpresa button:last-of-type {
+  background: #e74c3c;
+}
+#modalEditarEmpresa .button-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Logo en sidebar */
+#sidebar-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  margin: 0 auto 10px;
+  display: none;
+  object-fit: contain;
+  background: white;
+  padding: 5px;
+}
+
+/* Logo en modal */
+.logo-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+}
+#preview-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+.logo-input {
+  margin-top: 10px;
+}

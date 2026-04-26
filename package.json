@@ -12,8 +12,7 @@
     "author": "Tu Nombre",
     "license": "ISC",
     "dependencies": {
-        "better-sqlite3": "^9.4.3",
-        "pdfkit": "^0.18.0"
+        "better-sqlite3": "^9.4.3"
     },
     "devDependencies": {
         "electron": "^29.1.0",
