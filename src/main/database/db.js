@@ -1,9 +1,14 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
 let db = null;
+let globalDb = null;
 
 function conectarEmpresa(folderPath) {
+  if (!fs.existsSync(folderPath)) {
+    throw new Error("El directorio de la empresa ya no existe.");
+  }
   if (db) {
     db.close();
   }
@@ -22,6 +27,38 @@ function getDB() {
   return db;
 }
 
+function getGlobalDB() {
+  if (!globalDb) {
+    // Se almacena en la carpeta de datos de usuario de la app (ej. AppData en Windows)
+    const { app } = require('electron');
+    const globalDbPath = path.join(app.getPath('userData'), 'global_contable.db');
+    globalDb = new Database(globalDbPath, { verbose: console.log });
+    globalDb.exec(`
+      CREATE TABLE IF NOT EXISTS plan_cuentas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT UNIQUE NOT NULL,
+        descripcion TEXT NOT NULL,
+        tipo TEXT,
+        nivel INTEGER
+      );
+
+      CREATE TABLE IF NOT EXISTS tipos_documentos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT UNIQUE NOT NULL,
+        descripcion TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS entidades (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT UNIQUE NOT NULL,
+        razon_social TEXT NOT NULL,
+        tipo TEXT NOT NULL
+      );
+    `);
+  }
+  return globalDb;
+}
+
 function initDB() {
   // NOTA: No uses "..." ni comentarios dentro del string del script si da problemas
   const initScript = `
@@ -34,6 +71,27 @@ function initDB() {
       correo TEXT,
       periodo_contable TEXT,
       logo TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS plan_cuentas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      codigo TEXT UNIQUE NOT NULL,
+      descripcion TEXT NOT NULL,
+      tipo TEXT,
+      nivel INTEGER
+    );
+
+    CREATE TABLE IF NOT EXISTS tipos_documentos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      codigo TEXT UNIQUE NOT NULL,
+      descripcion TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS entidades (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      codigo TEXT UNIQUE NOT NULL,
+      razon_social TEXT NOT NULL,
+      tipo TEXT NOT NULL
     );
   `;
   
@@ -58,4 +116,4 @@ function initDB() {
   }
 }
 
-module.exports = { conectarEmpresa, getDB };
+module.exports = { conectarEmpresa, getDB, getGlobalDB };

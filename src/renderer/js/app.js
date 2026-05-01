@@ -1,6 +1,9 @@
 // src/renderer/js/app.js
 
 import { initRouter } from './router.js';
+import { initPlanCuentas } from './modules/planCuentas.js';
+import { initTiposDocumentos } from './modules/tiposDocumentos.js';
+import { initEntidades } from './modules/entidades.js';
 
 let empresaConfigInitialized = false;
 
@@ -11,21 +14,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     return rutaCompleta.split(/[/\\]/).pop();
   };
 
-  // 1. Revisar si hay una empresa seleccionada
-  const lastCompany = await window.api.checkLastEmpresa();
-  
-  if (lastCompany.success) {
-    document.getElementById('sidebar-title').textContent = obtenerNombreCarpeta(lastCompany.folderPath);
-  } else {
-    document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
-    alert("Por favor, seleccione o cree una carpeta para empezar a trabajar.");
-  }
+  // 1. Estado inicial sin empresa conectada
+  document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
+  document.getElementById('sidebar-logo').style.display = 'none';
 
   // 2. Inicializar el menú lateral y decirle qué hacer al cambiar de vista
   initRouter((targetId) => {
       if (targetId === 'view-empresa-gestion') {
           renderListaEmpresas();
           initEmpresaConfig();
+      } else if (targetId === 'view-plan-cuentas') {
+          initPlanCuentas();
+      } else if (targetId === 'view-tipos-documentos') {
+          initTiposDocumentos();
+      } else if (targetId === 'view-entidades') {
+          initEntidades();
       }
   });
 
@@ -44,12 +47,17 @@ async function renderListaEmpresas() {
     div.className = 'empresa-item';
     div.innerHTML = `
       <span>${ruta.split(/[/\\]/).pop()}</span>
-      <button class="btn-edit" data-ruta="${ruta}" style="background: none; border: none; font-size: 16px; cursor: pointer;">✏️</button>
+      <button class="btn-edit" data-ruta="${ruta}" style="background: none; border: none; font-size: 16px; cursor: pointer;"><i class="fa-solid fa-pencil"></i></button>
     `;
     div.title = ruta;
-    div.addEventListener('dblclick', () => {
-      window.api.conectarRutaDirecta(ruta);
-      window.location.reload();
+    div.addEventListener('dblclick', async () => {
+      const res = await window.api.conectarRutaDirecta(ruta);
+      if (res.success) {
+        window.location.reload();
+      } else {
+        alert(res.error);
+        renderListaEmpresas(); // Refrescar lista de UI
+      }
     });
     lista.appendChild(div);
   });
@@ -169,14 +177,18 @@ async function loadEmpresaInfo() {
   }
 }
 
-function abrirModalEditar(ruta) {
+async function abrirModalEditar(ruta) {
   // Primero conectar a esa empresa para cargar su info
-  window.api.conectarRutaDirecta(ruta);
+  const connectRes = await window.api.conectarRutaDirecta(ruta);
+  if (!connectRes.success) {
+    alert(connectRes.error);
+    renderListaEmpresas();
+    return;
+  }
   // Luego cargar info
-  setTimeout(async () => {
-    const info = await window.api.getEmpresaInfo();
-    const nombreCarpeta = ruta.split(/[/\\]/).pop();
-    
+  const info = await window.api.getEmpresaInfo();
+  const nombreCarpeta = ruta.split(/[/\\]/).pop();
+  
     // Pre-llenar con nombre de carpeta si no hay nombre comercial
     document.getElementById('edit_emp_nombre').value = info.nombre_comercial || nombreCarpeta;
     document.getElementById('edit_emp_ruc').value = info.ruc || '';
@@ -208,7 +220,6 @@ function abrirModalEditar(ruta) {
         reader.readAsDataURL(file);
       }
     });
-  }, 100); // Pequeño delay para asegurar conexión
 }
 
 function cerrarModal() {

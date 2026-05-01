@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Software Contable Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
@@ -13,14 +14,23 @@
     </div>
     <h2 id="sidebar-title">Contabilidad Pro</h2>
     
-    <button class="menu-btn active" data-target="view-empresa-gestion">⚙️ Mi Empresa</button>
+    <div class="menu-group">
+      <button class="menu-btn has-submenu"><i class="fa-solid fa-table"></i> Tablas ▾</button>
+      <div class="submenu" style="display: none; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.1); margin-left: 15px;">
+          <button class="submenu-item" data-target="view-plan-cuentas">Plan Contable</button>
+          <button class="submenu-item" data-target="view-tipos-documentos">Tipos de Documentos</button>
+          <button class="submenu-item" data-target="view-entidades">Cliente / Proveedor</button>
+      </div>
+    </div>
+    
+    <button class="menu-btn active" data-target="view-empresa-gestion"><i class="fa-solid fa-building"></i> Mi Empresa</button>
   </aside>
 
   <main class="main-content">
     
     <section id="view-empresa-gestion" class="view-section active">
       <div class="card" style="position: relative;">
-          <button id="btnNuevaEmpresa" style="position: absolute; top: 10px; right: 10px; background: #27ae60; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">➕</button>
+          <button id="btnNuevaEmpresa" style="position: absolute; top: 10px; right: 10px; background: #27ae60; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-plus"></i></button>
           <h2>Empresas Registradas</h2>
           <p><small>Doble clic sobre una empresa para abrir su contabilidad.</small></p>
           <div id="lista-empresas-items" class="empresas-grid">
@@ -64,6 +74,179 @@
           </form>
         </div>
       </div>
+  </section>
+
+  <section id="view-entidades" class="view-section">
+    <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;">
+        <h2 style="margin: 0;">Cliente / Proveedor</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="position: relative;">
+            <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 11px; color: #7f8c8d;"></i>
+            <input type="text" id="inputBuscarEnt" placeholder="Buscar..." style="padding: 8px 10px 8px 30px; width: 200px; border: 1px solid #ccc; border-radius: 4px; margin: 0;">
+          </div>
+          <button id="btnExportarExcelEnt" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-export"></i> Exportar</button>
+          <button id="btnImportarExcelEnt" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-excel"></i> Importar</button>
+          <button id="btnEditarEnt" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #f39c12;"><i class="fa-solid fa-pencil"></i> Editar</button>
+          <button id="btnEliminarEnt" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #e74c3c;"><i class="fa-solid fa-trash"></i> Eliminar</button>
+          <button id="btnNuevaEnt" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px;"><i class="fa-solid fa-plus"></i> Nuevo</button>
+        </div>
+      </div>
+      <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Código Tributario</th>
+            <th>Razón Social</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-entidades">
+          <!-- Entidades dinámicas se cargarán aquí -->
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Modal para crear/editar Entidades -->
+    <div id="modalEnt" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 20px; border-radius: 8px; width: 450px; max-width: 90%;">
+        <h3 id="modalEntTitle">Nuevo Registro</h3>
+        <form id="formEnt">
+          <input type="hidden" id="ent_is_edit" value="false">
+          <input type="hidden" id="ent_old_codigo" value="">
+          <div class="form-grid" style="grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="ent_codigo" placeholder="Código Tributario (RUC/DNI)" required>
+            <input type="text" id="ent_razon_social" placeholder="Razón Social / Nombres" required>
+            <select id="ent_tipo" required style="grid-column: span 2;">
+              <option value="" disabled selected>Seleccione el Tipo</option>
+              <option value="Cliente">Cliente</option>
+              <option value="Proveedor">Proveedor</option>
+              <option value="Trabajador">Trabajador</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="button-row" style="display: flex; justify-content: center; gap: 10px;">
+            <button type="submit" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Guardar</button>
+            <button type="button" id="btnCerrarModalEnt" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-plan-cuentas" class="view-section">
+    <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;">
+        <h2 style="margin: 0;">Plan de Cuentas</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="position: relative;">
+            <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 11px; color: #7f8c8d;"></i>
+            <input type="text" id="inputBuscarCuenta" placeholder="Buscar cuenta..." style="padding: 8px 10px 8px 30px; width: 200px; border: 1px solid #ccc; border-radius: 4px; margin: 0;">
+          </div>
+          <button id="btnExportarExcel" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-export"></i> Exportar</button>
+          <button id="btnImportarExcel" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-excel"></i> Importar</button>
+          <button id="btnEditarCuenta" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #f39c12;"><i class="fa-solid fa-pencil"></i> Editar</button>
+          <button id="btnEliminarCuenta" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #e74c3c;"><i class="fa-solid fa-trash"></i> Eliminar</button>
+          <button id="btnNuevaCuenta" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px;"><i class="fa-solid fa-plus"></i> Nueva</button>
+        </div>
+      </div>
+      <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th>Nombre de la cuenta</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-plan-cuentas">
+          <!-- Cuentas dinámicas se cargarán aquí -->
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Modal para crear/editar cuentas del Plan de Cuentas -->
+    <div id="modalCuenta" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <h3 id="modalCuentaTitle">Nueva Cuenta</h3>
+        <form id="formCuenta">
+          <input type="hidden" id="cuenta_is_edit" value="false">
+          <input type="hidden" id="cuenta_old_codigo" value="">
+          <div class="form-grid" style="grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="cuenta_codigo" placeholder="Cuenta (ej. 1011)" required>
+            <input type="text" id="cuenta_descripcion" placeholder="Nombre de la cuenta (ej. Caja y Bancos)" required>
+            <select id="cuenta_tipo" required>
+              <option value="" disabled selected>Seleccione Tipo de Cuenta</option>
+              <option value="Activo">Activo</option>
+              <option value="Pasivo">Pasivo</option>
+              <option value="Patrimonio">Patrimonio</option>
+              <option value="Ingresos">Ingresos</option>
+              <option value="Gastos">Gastos</option>
+              <option value="Resultados">Resultados</option>
+              <option value="Gestión">Gestión</option>
+              <option value="Cuentas de Orden">Cuentas de Orden</option>
+            </select>
+          </div>
+          <div class="button-row" style="display: flex; justify-content: center; gap: 10px;">
+            <button type="submit" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Guardar</button>
+            <button type="button" id="btnCerrarModalCuenta" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-tipos-documentos" class="view-section">
+    <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;">
+        <h2 style="margin: 0;">Tipos de Documentos</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="position: relative;">
+            <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 11px; color: #7f8c8d;"></i>
+            <input type="text" id="inputBuscarDoc" placeholder="Buscar documento..." style="padding: 8px 10px 8px 30px; width: 200px; border: 1px solid #ccc; border-radius: 4px; margin: 0;">
+          </div>
+          <button id="btnExportarExcelDoc" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-export"></i> Exportar</button>
+          <button id="btnImportarExcelDoc" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #207245;"><i class="fa-solid fa-file-excel"></i> Importar</button>
+          <button id="btnEditarDoc" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #f39c12;"><i class="fa-solid fa-pencil"></i> Editar</button>
+          <button id="btnEliminarDoc" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px; background-color: #e74c3c;"><i class="fa-solid fa-trash"></i> Eliminar</button>
+          <button id="btnNuevaDoc" class="btn-success" style="width: auto; margin: 0; padding: 8px 12px;"><i class="fa-solid fa-plus"></i> Nuevo</button>
+        </div>
+      </div>
+      <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Documento</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-tipos-documentos">
+          <!-- Documentos dinámicos se cargarán aquí -->
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Modal para crear/editar Tipos de Documentos -->
+    <div id="modalDoc" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <h3 id="modalDocTitle">Nuevo Documento</h3>
+        <form id="formDoc">
+          <input type="hidden" id="doc_is_edit" value="false">
+          <input type="hidden" id="doc_old_codigo" value="">
+          <div class="form-grid" style="grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="doc_codigo" placeholder="Código (ej. 01)" required>
+            <input type="text" id="doc_descripcion" placeholder="Documento (ej. Factura)" required>
+          </div>
+          <div class="button-row" style="display: flex; justify-content: center; gap: 10px;">
+            <button type="submit" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Guardar</button>
+            <button type="button" id="btnCerrarModalDoc" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </section>
 
   </main>

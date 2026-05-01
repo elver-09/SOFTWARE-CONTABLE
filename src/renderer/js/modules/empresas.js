@@ -18,7 +18,7 @@ export async function renderListaEmpresas() {
         const nombreCarpeta = ruta.split(/[/\\]/).pop();
         return `
             <div class="empresa-item" title="Doble clic para abrir: ${ruta}">
-                <div class="empresa-icon">🏢</div>
+                <div class="empresa-icon"><i class="fa-solid fa-building"></i></div>
                 <div class="empresa-details">
                     <strong>${nombreCarpeta}</strong>
                     <small>${ruta}</small>
@@ -32,8 +32,13 @@ export async function renderListaEmpresas() {
     items.forEach((item, index) => {
         item.addEventListener('dblclick', async () => {
             const ruta = rutas[index];
-            await window.api.conectarRutaDirecta(ruta);
-            window.location.reload(); // Recarga la app para cargar la nueva BD
+            const res = await window.api.conectarRutaDirecta(ruta);
+            if (res.success) {
+                window.location.reload(); // Recarga la app para cargar la nueva BD
+            } else {
+                alert(res.error);
+                renderListaEmpresas(); // Refresca la lista porque la empresa fue removida
+            }
         });
     });
 }
