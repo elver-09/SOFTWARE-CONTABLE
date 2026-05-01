@@ -12,11 +12,12 @@ body {
   width: 250px;
   background-color: #2c3e50;
   color: white;
-  padding-top: 20px;
+  padding-top: 10px;
   display: flex;
   flex-direction: column;
+  transition: width 0.3s ease;
 }
-.sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 20px; word-wrap: break-word; white-space: normal; line-height: 1.2; }
+.sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 20px; word-wrap: break-word; white-space: normal; line-height: 1.2; transition: opacity 0.2s; }
 .menu-btn {
   background: transparent;
   color: #ecf0f1;
@@ -26,13 +27,21 @@ body {
   font-size: 16px;
   cursor: pointer;
   transition: 0.3s;
+  white-space: nowrap;
+  overflow: hidden;
 }
+.menu-btn i { width: 25px; text-align: center; margin-right: 10px; }
 .menu-btn:hover, .menu-btn.active {
   background-color: #34495e;
   border-left: 4px solid #3498db;
 }
 
 /* Submenús */
+.submenu {
+  padding-left: 20px;
+  border-left: 2px solid rgba(255,255,255,0.1);
+  margin-left: 15px;
+}
 .menu-group { width: 100%; }
 .submenu-item {
   background: transparent;
@@ -46,7 +55,10 @@ body {
   width: 100%;
   display: block;
   box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 }
+.submenu-item i { width: 20px; text-align: center; margin-right: 8px; }
 .submenu-item:hover, .submenu-item.active {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.05);
@@ -55,6 +67,18 @@ body {
 .menu-btn.has-submenu.expanded {
   background-color: #34495e;
 }
+
+/* Estado Contraído */
+.sidebar.collapsed { width: 70px; }
+.sidebar.collapsed .menu-text { display: none; }
+.sidebar.collapsed h2 { display: none; }
+.sidebar.collapsed #sidebar-logo { width: 40px !important; height: 40px !important; margin-bottom: 10px; }
+.sidebar.collapsed .menu-btn { text-align: center; padding: 15px 0; }
+.sidebar.collapsed .menu-btn i { margin-right: 0; font-size: 20px; }
+.sidebar.collapsed .submenu { padding-left: 0; margin-left: 0; border-left: none; }
+.sidebar.collapsed .submenu-item { text-align: center; padding: 10px 0; }
+.sidebar.collapsed .submenu-item i { margin-right: 0; font-size: 18px; }
+#sidebar-toggle:hover i { color: #3498db; }
 
 /* Área de Contenido Principal */
 .main-content {

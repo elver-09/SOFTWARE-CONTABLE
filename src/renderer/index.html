@@ -9,21 +9,24 @@
 <body>
 
   <aside class="sidebar">
+    <div style="display: flex; justify-content: flex-end; padding: 0 15px;">
+      <button id="sidebar-toggle" style="background: transparent; border: none; color: white; cursor: pointer; font-size: 20px; padding: 10px 0;"><i class="fa-solid fa-bars"></i></button>
+    </div>
     <div class="company-logo">
       <img id="sidebar-logo" src="" alt="Logo Empresa" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none;">
     </div>
-    <h2 id="sidebar-title">Contabilidad Pro</h2>
+    <h2 id="sidebar-title" class="menu-text">Contabilidad Pro</h2>
     
     <div class="menu-group">
-      <button class="menu-btn has-submenu"><i class="fa-solid fa-table"></i> Tablas ▾</button>
-      <div class="submenu" style="display: none; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.1); margin-left: 15px;">
-          <button class="submenu-item" data-target="view-plan-cuentas">Plan Contable</button>
-          <button class="submenu-item" data-target="view-tipos-documentos">Tipos de Documentos</button>
-          <button class="submenu-item" data-target="view-entidades">Cliente / Proveedor</button>
+      <button class="menu-btn has-submenu" title="Tablas"><i class="fa-solid fa-table"></i> <span class="menu-text">Tablas ▾</span></button>
+      <div class="submenu" style="display: none;">
+          <button class="submenu-item" data-target="view-plan-cuentas" title="Plan Contable"><i class="fa-solid fa-book"></i> <span class="menu-text">Plan Contable</span></button>
+          <button class="submenu-item" data-target="view-tipos-documentos" title="Tipos de Documentos"><i class="fa-solid fa-file-invoice"></i> <span class="menu-text">Tipos de Documentos</span></button>
+          <button class="submenu-item" data-target="view-entidades" title="Cliente / Proveedor"><i class="fa-solid fa-users"></i> <span class="menu-text">Cliente / Proveedor</span></button>
       </div>
     </div>
     
-    <button class="menu-btn active" data-target="view-empresa-gestion"><i class="fa-solid fa-building"></i> Mi Empresa</button>
+    <button class="menu-btn active" data-target="view-empresa-gestion" title="Mi Empresa"><i class="fa-solid fa-building"></i> <span class="menu-text">Mi Empresa</span></button>
   </aside>
 
   <main class="main-content">

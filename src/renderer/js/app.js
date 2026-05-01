@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
   document.getElementById('sidebar-logo').style.display = 'none';
 
+  // Configurar el botón de contraer / expandir sidebar
+  document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+  });
+
   // 2. Inicializar el menú lateral y decirle qué hacer al cambiar de vista
   initRouter((targetId) => {
       if (targetId === 'view-empresa-gestion') {
@@ -165,6 +170,10 @@ async function loadEmpresaInfo() {
     } else {
       logoImg.style.display = 'none';
     }
+
+    // Mostrar el nombre de la empresa en el sidebar
+    document.getElementById('sidebar-title').textContent = info.nombre_comercial || 'Empresa Activa';
+
   } catch (error) {
     // No hay empresa activa todavía o no hay base de datos cargada.
     document.getElementById('emp_nombre').value = '';
@@ -174,6 +183,7 @@ async function loadEmpresaInfo() {
     document.getElementById('emp_correo').value = '';
     document.getElementById('emp_periodo').value = '2024';
     document.getElementById('sidebar-logo').style.display = 'none';
+    document.getElementById('sidebar-title').textContent = "Contabilidad Pro";
   }
 }
 
