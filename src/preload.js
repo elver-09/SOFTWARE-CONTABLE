@@ -32,5 +32,8 @@ contextBridge.exposeInMainWorld('api', {
     updateEntidad: (data) => ipcRenderer.invoke('entidades:update', data),
     deleteEntidad: (codigo) => ipcRenderer.invoke('entidades:delete', codigo),
     importarExcelEntidades: () => ipcRenderer.invoke('entidades:import-excel'),
-    exportarExcelEntidades: () => ipcRenderer.invoke('entidades:export-excel')
+    exportarExcelEntidades: () => ipcRenderer.invoke('entidades:export-excel'),
+
+    // --- VOUCHERS ---
+    addVoucher: (data) => ipcRenderer.invoke('voucher:add', data)
 });

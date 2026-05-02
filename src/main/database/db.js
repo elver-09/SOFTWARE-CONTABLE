@@ -93,6 +93,31 @@ function initDB() {
       razon_social TEXT NOT NULL,
       tipo TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS vouchers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      origen TEXT NOT NULL,
+      numero TEXT NOT NULL,
+      fecha TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS voucher_detalles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      voucher_id INTEGER NOT NULL,
+      cuenta TEXT NOT NULL,
+      nombre_cuenta TEXT,
+      debe REAL,
+      haber REAL,
+      moneda TEXT,
+      tc REAL,
+      equivalente REAL,
+      doc_tipo TEXT,
+      doc_numero TEXT,
+      codigo TEXT,
+      razon_social TEXT,
+      glosa TEXT,
+      FOREIGN KEY(voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE
+    );
   `;
   
   try {

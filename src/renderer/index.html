@@ -26,6 +26,13 @@
       </div>
     </div>
     
+    <div class="menu-group">
+      <button class="menu-btn has-submenu" title="Contabilidad"><i class="fa-solid fa-calculator"></i> <span class="menu-text">Contabilidad ▾</span></button>
+      <div class="submenu" style="display: none;">
+          <button class="submenu-item" data-target="view-voucher" title="Voucher"><i class="fa-solid fa-file-invoice-dollar"></i> <span class="menu-text">Voucher</span></button>
+      </div>
+    </div>
+
     <button class="menu-btn active" data-target="view-empresa-gestion" title="Mi Empresa"><i class="fa-solid fa-building"></i> <span class="menu-text">Mi Empresa</span></button>
   </aside>
 
@@ -246,6 +253,169 @@
           <div class="button-row" style="display: flex; justify-content: center; gap: 10px;">
             <button type="submit" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Guardar</button>
             <button type="button" id="btnCerrarModalDoc" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-voucher" class="view-section">
+    <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 0;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #2c3e50;">INGRESO DE VOUCHER</h2>
+      </div>
+      <form id="formVoucherHeader" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e0e0e0;">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr; align-items: end; margin-bottom: 0;">
+          <div>
+            <label for="voucher_origen" style="font-weight: bold; font-size: 13px; margin-bottom: 6px; display: block; color: #34495e;">ORIGEN</label>
+            <select id="voucher_origen" required>
+              <option value="" disabled selected>Seleccione Origen</option>
+              <option value="00">00 - APERTURA</option>
+              <option value="01">01 - COMPRAS</option>
+              <option value="02">02 - VENTAS</option>
+              <option value="03">03 - CAJA</option>
+              <option value="04">04 - DIARIO</option>
+            </select>
+          </div>
+          <div>
+            <label for="voucher_numero" style="font-weight: bold; font-size: 13px; margin-bottom: 6px; display: block; color: #34495e;">NÚMERO</label>
+            <input type="number" id="voucher_numero" placeholder="Ej. 1" required>
+          </div>
+          <div>
+            <label for="voucher_fecha" style="font-weight: bold; font-size: 13px; margin-bottom: 6px; display: block; color: #34495e;">FECHA</label>
+            <input type="date" id="voucher_fecha" required>
+          </div>
+        </div>
+      </form>
+
+      <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 15px 0;">
+
+      <!-- Tabla inferior donde aparecerá el detalle -->
+      <div class="table-container" style="flex-grow: 1; overflow-y: auto; border: 1px solid #e0e0e0;">
+        <table style="margin-bottom: 0;">
+          <thead>
+            <tr>
+              <th style="font-size: 12px;">Cuenta</th>
+              <th style="font-size: 12px;">Nombre</th>
+              <th style="font-size: 12px;">Debe</th>
+              <th style="font-size: 12px;">Haber</th>
+              <th style="font-size: 12px;">M</th>
+              <th style="font-size: 12px;">T.C.</th>
+              <th style="font-size: 12px;">Equivalente</th>
+              <th style="font-size: 12px;">Doc</th>
+              <th style="font-size: 12px;">Número</th>
+              <th style="font-size: 12px;">Código (RUC)</th>
+              <th style="font-size: 12px;">Razón Social</th>
+              <th style="font-size: 12px;">Glosa</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="tabla-voucher-detalle">
+            <!-- Detalles se cargarán aquí -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOOTER DEL VOUCHER -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+        <div>
+          <button id="btnVoucherMago" type="button" style="background: #8e44ad; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;"><i class="fa-solid fa-wand-magic-sparkles"></i> MAGO</button>
+        </div>
+        <div style="display: flex; gap: 15px; font-weight: bold; font-size: 14px;">
+          <div style="padding: 10px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">TOTAL DEBE: <span id="voucher_total_debe" style="color: #27ae60;">0.00</span></div>
+          <div style="padding: 10px 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px;">TOTAL HABER: <span id="voucher_total_haber" style="color: #e74c3c;">0.00</span></div>
+        </div>
+        <div>
+          <button id="btnGuardarVoucher" type="button" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><i class="fa-solid fa-save"></i> Guardar Voucher</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para el MAGO -->
+    <div id="modalVoucherMago" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 35px 40px; border-radius: 8px; width: 80vw; max-width: 1000px; height: 80vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+        <h3 style="color: #8e44ad; margin-top: 0; font-size: 22px; margin-bottom: 25px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Asistente de Asiento (MAGO)</h3>
+        
+        <form id="formVoucherMago" style="display: flex; flex-direction: column; flex-grow: 1;">
+          <!-- Fila 1: Fechas y Moneda -->
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+              <label for="mago_fecha_doc" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">FECHA DOC.</label>
+              <input type="date" id="mago_fecha_doc" required>
+            </div>
+            <div>
+              <label for="mago_fecha_venc" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">FECHA VENC.</label>
+              <input type="date" id="mago_fecha_venc">
+            </div>
+            <div>
+              <label for="mago_moneda" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">MONEDA</label>
+              <select id="mago_moneda" required>
+                <option value="PEN">PEN</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <div>
+              <label for="mago_tc" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">T/C</label>
+              <input type="number" step="0.001" id="mago_tc" placeholder="1.000" required>
+            </div>
+          </div>
+          
+          <!-- Fila 2: Documento y Entidad -->
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1.2fr 2fr; gap: 20px; margin-bottom: 30px;">
+            <div>
+              <label for="mago_doc_tipo" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">DOC (TIPO)</label>
+              <input type="text" id="mago_doc_tipo" placeholder="Ej: 01" required>
+            </div>
+            <div>
+              <label for="mago_doc_numero" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">NÚMERO</label>
+              <input type="text" id="mago_doc_numero" placeholder="Ej: F001-123" required>
+            </div>
+            <div>
+              <label for="mago_codigo" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">CÓDIGO (RUC)</label>
+              <input type="text" id="mago_codigo" placeholder="RUC/DNI" required>
+            </div>
+            <div>
+              <label for="mago_razon_social" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">RAZÓN SOCIAL</label>
+              <input type="text" id="mago_razon_social" placeholder="..." readonly style="background-color: #ecf0f1;">
+            </div>
+          </div>
+
+          <!-- Fila 3: Glosa -->
+          <div style="margin-bottom: 30px;">
+            <label for="mago_glosa" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">GLOSA</label>
+            <input type="text" id="mago_glosa" placeholder="Descripción de la operación..." required style="width: 100%;">
+          </div>
+
+          <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+          <h4 style="margin-top: 0; margin-bottom: 15px; color: #2c3e50; font-size: 16px;">Montos y Cuenta</h4>
+
+          <!-- Fila 4: Cuenta y Montos -->
+          <div class="form-grid" style="grid-template-columns: 1fr 2fr 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px; align-items: end;">
+            <div>
+              <label for="mago_cuenta" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">CUENTA</label>
+              <input type="text" id="mago_cuenta" placeholder="Ej. 6011" required>
+            </div>
+            <div>
+              <label for="mago_cuenta_nombre" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">NOMBRE DE CUENTA</label>
+              <input type="text" id="mago_cuenta_nombre" placeholder="..." readonly style="background-color: #ecf0f1;">
+            </div>
+            <div>
+              <label for="mago_base" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">BASE IMPONIBLE</label>
+              <input type="number" step="0.01" id="mago_base" placeholder="0.00" required>
+            </div>
+            <div>
+              <label for="mago_igv" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">I.G.V. (18%)</label>
+              <input type="number" step="0.01" id="mago_igv" placeholder="0.00" required>
+            </div>
+            <div>
+              <label for="mago_total" style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; color: #34495e;">TOTAL</label>
+              <input type="number" step="0.01" id="mago_total" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <div class="button-row" style="display: flex; justify-content: space-between; align-items: flex-end; flex-grow: 1; padding-top: 20px;">
+            <button type="button" id="btnCerrarModalMago" style="background: transparent; color: #7f8c8d; border: 1px solid #7f8c8d; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Cancelar</button>
+            <button type="submit" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-save"></i> Grabar</button>
           </div>
         </form>
       </div>

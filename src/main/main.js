@@ -12,6 +12,7 @@ const empresaController = require('./controllers/empresaController');
 const planCuentasController = require('./controllers/planCuentasController');
 const tiposDocumentosController = require('./controllers/tiposDocumentosController');
 const entidadesController = require('./controllers/entidadesController');
+const voucherController = require('./controllers/voucherController');
 
 let mainWindow;
 
@@ -161,6 +162,9 @@ function registrarRutasIPC() {
         if (result.canceled || result.filePaths.length === 0) return { success: false, canceled: true };
         return tiposDocumentosController.importFromExcel(result.filePaths[0]);
     });
+
+    // VOUCHERS
+    ipcMain.handle('voucher:add', (event, data) => voucherController.addVoucher(data));
 }
 
 // --- 4. CICLO DE VIDA ---

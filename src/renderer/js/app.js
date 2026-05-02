@@ -4,6 +4,7 @@ import { initRouter } from './router.js';
 import { initPlanCuentas } from './modules/planCuentas.js';
 import { initTiposDocumentos } from './modules/tiposDocumentos.js';
 import { initEntidades } from './modules/entidades.js';
+import { initVoucher } from './modules/voucher.js';
 
 let empresaConfigInitialized = false;
 
@@ -34,6 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           initTiposDocumentos();
       } else if (targetId === 'view-entidades') {
           initEntidades();
+      } else if (targetId === 'view-voucher') {
+          initVoucher();
       }
   });
 
